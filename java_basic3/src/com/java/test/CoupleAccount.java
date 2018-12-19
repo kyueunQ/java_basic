@@ -2,7 +2,7 @@ package com.java.test;
 
 public class CoupleAccount {
 
-	public String name;
+	private String name;
 	static int amount;
 	// static: share the data with all objects
 	
