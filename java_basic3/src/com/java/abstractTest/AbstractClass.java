@@ -6,14 +6,14 @@ public abstract class AbstractClass {
 	String str;
 	
 	public AbstractClass() {
-		System.out.println("--Abstract Constructor--");
+		System.out.println("--Abstract Constructor1--");
 	}
 	
 	public AbstractClass(int n, String s) {
-		System.out.println("--Abstract Constructor--");
+		System.out.println("--Abstract Constructor2--");
 	
-	this.num = n;
-	this.str = s;
+		this.num = n;
+		this.str = s;
 	}
 	
 	
