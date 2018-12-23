@@ -1646,7 +1646,297 @@ void Firstmethod throws Exception() {
 
    - 문자열 단위로 한 라인씩 읽어 온다고 생각하기
 
-<br><br><br><br>
+<br><br>
+
+## 네트워킹
+
+<br>
+
+### 소켓
+
+- 소켓(Socket) : 네트워크 상에서 데이터를 전송하고 입/출력 가능
+- 자바에서 Class로 제공 
+- 클라이언트: 데이터 요청을 보내는 곳 (브라우저)
+  - socket 제작
+- 서버: 데이터를 제공하는 곳
+  - Server socket 제작
+
+<br>
+
+1. ServerSocket을 만들어 놓고 Browser를 통해 접속
+
+```java
+package com.java.socket;
+
+import java.net.ServerSocket;
+import java.net.Socket;
+
+public class SocketMainClass {
+	
+	public static void main(String[] args) {
+		
+		ServerSocket serverSocket = null;
+		// reference 변수를 serverSocket로 정함
+		// 네트워크와 관련되어 무조건 예외처리가 필요함
+		// 그래서 변수 선언만하고 초기화는 하지 않음
+		
+		Socket socket = null;
+		
+		try {
+			
+			serverSocket = new ServerSocket(9000); // port번호 입력
+			// ServerSocket이 생성됨
+			// Client를 맞을 준비가 됨
+			System.out.println("ServerSocket 준비완료");
+			
+			socket = serverSocket.accept();
+			// socket을 반환해 줌 
+			System.out.println("Client 연결");
+			System.out.println("socket: " + socket);
+			
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally { // 자원 회수
+			try {
+				if(socket != null) socket.close();
+				if(serverSocket != null) serverSocket.close();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+	}
+}
+
+```
+
+<br>
+
+2. Client와 Server간의 Socket을 이용한 통신
+
+   *MainClassServerSocket*
+
+   ```java
+   public class MainClassSeverSocket {
+   	
+   	public static void main(String[] args) {
+   		
+   		ServerSocket serverSocket = null;
+   		// 요청을 받는 기능도 필요함
+   		
+   		Socket socket = null;
+   		// 요청 보냄
+   		
+   		try {
+   			serverSocket = new ServerSocket(9001);
+   			System.out.println("Complete. Welcome, Client!");
+   			
+   			socket = serverSocket.accept();
+   			// Client가 들어오면 accept()가 받아줌
+   			// accept가 socket 객체를 반환해줌
+   			System.out.println("Connect the client");
+   			System.out.println("sockt: " + socket);
+   			
+   		} catch (IOException e) {
+   			e.printStackTrace();
+   		} finally {
+   			try {
+   				if(socket != null) socket.close();
+   				if(serverSocket != null) serverSocket.close();
+   			
+   			} catch (IOException e) {
+   				e.printStackTrace();
+   			}
+   			
+   			
+   		}
+   	}
+   
+   ```
+
+   *MainClassSocket*
+
+   ```java
+   public static void main(String[] args) {
+   		
+   		Socket socket = null;
+   		
+   		try {
+   			socket = new Socket("localhost", 9000);
+   			// 개인pc IP : 127.0.0.1  (어디로, 포트번호)
+   			// 네트워크 연결장치 생성 완료
+   			
+   			System.out.println("successfully Connect the Server");
+   			System.out.println("socket: " + socket);
+   			
+   		} catch (Exception e) {
+   			e.printStackTrace();
+   		} finally {
+   			try {
+   				if(socket != null) socket.close();
+   			} catch (Exception e) {
+   				e.printStackTrace();
+   			}
+   		}
+   	}
+   ```
+
+   - Server 먼저 구동 한 후 Client 접속 (server 정보를 통해 접근)
+
+<br>
+
+3. 양방향 통신
+
+   *ServerClass.java*
+
+   ```java
+   public class ServerClass {
+   	
+   	public static void main(String[] args) {
+   		
+   		ServerSocket serverSocket = null;
+   		Socket socket = null;
+   		
+   		InputStream ins = null;
+   		DataInputStream dins = null;
+   		
+   		OutputStream ops= null;
+   		DataOutputStream dops = null;
+   		
+   		try {
+   			
+   			serverSocket = new ServerSocket(9001);
+   			System.out.println("Complete. Welcome!");
+   			
+   			// outMessage가 오면 여기서 반응
+   			socket = serverSocket.accept();
+   			System.out.println("Successfully Connect the client");
+   			System.out.println("socket: " + socket);
+   			
+   			ins = socket.getInputStream();
+   			dins = new DataInputStream(ins);
+   			
+   			ops = socket.getOutputStream();
+   			dops = new DataOutputStream(ops);
+   			
+   			while (true) {
+   				// client에서 outMessage로 내보낸 데이터
+   				String clientMessage = dins.readUTF();
+   				System.out.println("clientMessage: " + clientMessage);
+   
+   				// Client에 메세지 전송(입력)
+   				dops.writeUTF("메시지 전송완료");
+   				dops.flush();
+   				
+   				if(clientMessage.equals("STOP")) break;
+   				
+   			}
+   			
+   		} catch (IOException e) {
+   			e.printStackTrace(); 
+   		} finally {
+   			try {
+   				if(dops != null) dops.close();
+   				if(ops != null) ops.close();
+   				if(dins != null) dins.close();
+   				if(ins != null) ins.close();
+   				
+   				if(socket != null) socket.close();
+   				
+   			} catch (IOException e) {
+   				e.printStackTrace();
+   			}
+   		}
+   		
+   	}
+   
+   }
+   ```
+
+   *ClientClass.java*
+
+   ```java
+   public class ClientClass {
+   	
+   	public static void main(String[] args) {
+   		
+   		
+   		// 필요한 객체들을 선언
+   		Socket socket = null;
+   		
+   		OutputStream ops= null;
+   		DataOutputStream dops = null;
+   		
+   		InputStream ins = null;
+   		DataInputStream dins = null;
+   		
+   		Scanner sc = null;
+   		
+   		try {
+   			socket = new Socket("localhost", 9001);
+   			System.out.println("Connet the Server");
+   			
+   			ops = socket.getOutputStream();
+   			dops = new DataOutputStream(ops); // 확장
+   			
+   			ins = socket.getInputStream();
+   			dins = new DataInputStream(ins);
+   			
+   			sc = new Scanner(System.in);
+   			
+   			while (true) {
+   				System.out.println("메세지를 입력하세요: ");
+   				String outMessage = sc.nextLine();
+   				
+   				// 서버로 보내기
+   				dops.writeUTF(outMessage);
+   				dops.flush();
+   				
+   				// Server에서 들어온 말을 출력
+   				String inMessage = dins.readUTF();
+   				System.out.println("inMessage: " + inMessage);
+   				
+   				if(outMessage.equals("Strop")) break;
+   			}
+   				
+   		} catch (IOException e) {
+   			e.printStackTrace(); 
+   		} finally {
+   			try {
+   				if(dops != null) dops.close();
+   				if(ops != null) ops.close();
+   				if(dins != null) dins.close();
+   				if(ins != null) ins.close();
+   				
+   				if(socket != null) socket.close();
+   				
+   			} catch (IOException e) {
+   				e.printStackTrace();
+   			}
+   		}
+   	}
+   }
+   ```
+
+   - Severclass 서버 작동 후 ClientClass를 실행하면 다음과 같이 데이터를 주고 받을 수 있음
+
+     *ClientClass 콘솔창*
+
+     ![image](https://user-images.githubusercontent.com/35055662/50382124-8e820180-06db-11e9-8736-312a6507a411.png)
+
+
+
+   ​	*ServerClass 콘솔창*
+
+   ​	![image](https://user-images.githubusercontent.com/35055662/50382135-c12bfa00-06db-11e9-9be4-3c2228a18141.png)
+
+
+
+<br><br><br>
+
+
+
+
 
 
 [[학습자료 출처\] Inflearn, 완전 초보부터 개발자 취업까지!! 실전 JAVA 강좌](https://www.inflearn.com/learningpath/java-gibon/#hj_clp_step)
